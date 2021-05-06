@@ -1,0 +1,277 @@
+import 'package:camera/camera.dart';
+import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:remember_me/database/database.dart';
+import 'package:remember_me/screens/sign-in.dart';
+import 'package:remember_me/screens/sign-up.dart';
+import 'package:remember_me/screens/users_list_view.dart';
+import 'package:remember_me/services/facenet.service.dart';
+import 'package:remember_me/services/ml_vision_service.dart';
+
+class MyHomePage extends StatefulWidget {
+  MyHomePage({Key key}) : super(key: key);
+  @override
+  _MyHomePageState createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  // Services injection
+  FaceNetService _faceNetService = FaceNetService();
+  MLVisionService _mlVisionService = MLVisionService();
+  DataBaseService _dataBaseService = DataBaseService();
+
+  CameraDescription cameraDescription;
+  bool loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _startUp();
+  }
+
+  /// 1 Obtain a list of the available cameras on the device.
+  /// 2 loads the face net model
+  _startUp() async {
+    _setLoading(true);
+
+    List<CameraDescription> cameras = await availableCameras();
+
+    /// takes the front camera
+    cameraDescription = cameras.firstWhere(
+      (CameraDescription camera) =>
+          camera.lensDirection == CameraLensDirection.front,
+    );
+
+    // start the services
+    await _faceNetService.loadModel();
+    await _dataBaseService.loadDB();
+    _mlVisionService.initialize();
+
+    _setLoading(false);
+  }
+
+  // shows or hides the circular progress indicator
+  _setLoading(bool value) {
+    setState(() {
+      loading = value;
+    });
+  }
+
+  Future<void> _deleteCacheDir() async {
+    final cacheDir = await getTemporaryDirectory();
+
+    if (cacheDir.existsSync()) {
+      cacheDir.deleteSync(recursive: true);
+    }
+  }
+
+  Future<void> _deleteAppDir() async {
+    final appDir = await getApplicationSupportDirectory();
+
+    if (appDir.existsSync()) {
+      appDir.deleteSync(recursive: true);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        leading: Container(),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        actions: <Widget>[
+          Padding(
+            padding: EdgeInsets.only(right: 20, top: 20),
+            child: PopupMenuButton<String>(
+              child: Icon(
+                Icons.more_vert,
+                color: Colors.black,
+              ),
+              onSelected: (value) async {
+                switch (value) {
+                  case 'Clear Data':
+                    _dataBaseService.cleanDB();
+                    await _deleteAppDir();
+                    await _deleteCacheDir();
+                    break;
+                }
+              },
+              itemBuilder: (BuildContext context) {
+                return {'Clear Data'}.map((String choice) {
+                  return PopupMenuItem<String>(
+                    value: choice,
+                    child: Text(choice),
+                  );
+                }).toList();
+              },
+            ),
+          ),
+        ],
+      ),
+      body: !loading
+          ? SafeArea(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: <Widget>[
+                    Image(image: AssetImage('assets/logo.png')),
+                    Container(
+                      width: MediaQuery.of(context).size.width * 0.8,
+                      child: Column(
+                        children: [
+                          Text(
+                            "Remember Me",
+                            style: TextStyle(
+                                fontSize: 30, fontWeight: FontWeight.bold),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Column(
+                      children: [
+                        InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (BuildContext context) => SignIn(
+                                  cameraDescription: cameraDescription,
+                                ),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              color: Colors.lightBlue,
+                              boxShadow: <BoxShadow>[
+                                BoxShadow(
+                                  color: Colors.blue.withOpacity(0.1),
+                                  blurRadius: 1,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            alignment: Alignment.center,
+                            padding: EdgeInsets.symmetric(
+                                vertical: 14, horizontal: 16),
+                            width: MediaQuery.of(context).size.width * 0.5,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'Check User',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                                SizedBox(
+                                  width: 10,
+                                ),
+                                Icon(Icons.login, color: Colors.white)
+                              ],
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (BuildContext context) => SignUp(
+                                  cameraDescription: cameraDescription,
+                                ),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              color: Colors.lightBlue,
+                              boxShadow: <BoxShadow>[
+                                BoxShadow(
+                                  color: Colors.blue.withOpacity(0.1),
+                                  blurRadius: 1,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            alignment: Alignment.center,
+                            padding: EdgeInsets.symmetric(
+                                vertical: 14, horizontal: 16),
+                            width: MediaQuery.of(context).size.width * 0.5,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'Add New User',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                                SizedBox(
+                                  width: 10,
+                                ),
+                                Icon(Icons.person_add, color: Colors.white)
+                              ],
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (BuildContext context) =>
+                                    UsersListView(),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              color: Colors.lightBlue,
+                              boxShadow: <BoxShadow>[
+                                BoxShadow(
+                                  color: Colors.blue.withOpacity(0.1),
+                                  blurRadius: 1,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            alignment: Alignment.center,
+                            padding: EdgeInsets.symmetric(
+                                vertical: 14, horizontal: 16),
+                            width: MediaQuery.of(context).size.width * 0.5,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'Users List',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                                SizedBox(
+                                  width: 10,
+                                ),
+                                Icon(Icons.list, color: Colors.white)
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  ],
+                ),
+              ),
+            )
+          : Center(
+              child: CircularProgressIndicator(),
+            ),
+    );
+  }
+}
