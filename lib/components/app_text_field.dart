@@ -7,7 +7,8 @@ class AppTextField extends StatelessWidget {
       @required this.controller,
       this.keyboardType = TextInputType.text,
       this.autofocus = false,
-      this.isdetails = false})
+      this.isdetails = false,
+      this.isPhone})
       : super(key: key);
 
   final String labelText;
@@ -15,16 +16,24 @@ class AppTextField extends StatelessWidget {
   final TextInputType keyboardType;
   final bool autofocus;
   final bool isdetails;
+  final bool isPhone;
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
+    return TextFormField(
+      // ignore: missing_return
+      validator: (value) {
+        if (isPhone) {
+          if (value.isEmpty || !value.startsWith('+20') || value.length != 13)
+            return 'Starts With +20 and Length: 13';
+        }
+      },
       controller: this.controller,
       autofocus: this.autofocus,
       cursorColor: Color(0xFF5BC8AA),
       decoration: InputDecoration(
         floatingLabelBehavior: FloatingLabelBehavior.never,
-        labelText: labelText,
+        hintText: labelText,
         border: InputBorder.none,
         filled: true,
         fillColor: Colors.grey[200],

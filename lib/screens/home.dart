@@ -1,12 +1,16 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:remember_me/components/app_text_field.dart';
 import 'package:remember_me/database/database.dart';
 import 'package:remember_me/screens/sign-in.dart';
 import 'package:remember_me/screens/sign-up.dart';
 import 'package:remember_me/screens/users_list_view.dart';
 import 'package:remember_me/services/facenet.service.dart';
+import 'package:remember_me/services/location.dart';
 import 'package:remember_me/services/ml_vision_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:twilio_flutter/twilio_flutter.dart';
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key}) : super(key: key);
@@ -15,10 +19,16 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  final GlobalKey<FormState> _globalKey = GlobalKey<FormState>();
+  final TextEditingController phoneController = TextEditingController();
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+
   // Services injection
   FaceNetService _faceNetService = FaceNetService();
   MLVisionService _mlVisionService = MLVisionService();
   DataBaseService _dataBaseService = DataBaseService();
+  Location _location = Location();
+  TwilioFlutter twilioFlutter;
 
   CameraDescription cameraDescription;
   bool loading = false;
@@ -27,6 +37,106 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     _startUp();
+    _startTime();
+  }
+
+  showAlertDialog(BuildContext context) {
+    // set up the button
+    Widget okButton = FlatButton(
+      child: Text("Save"),
+      onPressed: () async {
+        if (_globalKey.currentState.validate()) {
+          _globalKey.currentState.save();
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          prefs.setString('phone', phoneController.text);
+          Navigator.of(context).pop();
+
+          _scaffoldKey.currentState.showSnackBar(new SnackBar(
+              content:
+                  Text('Phone ${phoneController.text} Saved Successfully')));
+
+          _getLoc();
+        }
+      },
+    );
+
+    // set up the AlertDialog
+    AlertDialog alert = AlertDialog(
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(20.0))),
+      title: Center(child: Text('Emergency Number')),
+      content: Form(
+          key: _globalKey,
+          child: AppTextField(
+            controller: phoneController,
+            labelText: 'Enter Phone Number',
+            isPhone: true,
+            keyboardType: TextInputType.phone,
+          )),
+      actions: [
+        okButton,
+      ],
+    );
+
+    // show the dialog
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+  }
+
+  _startTime() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool firstTime = prefs.getBool('first_time');
+
+    if (firstTime != null && !firstTime) {
+      // not first time
+
+      _getLoc();
+    } else {
+      prefs.setBool('first_time', false);
+      //show alert
+
+      showAlertDialog(context);
+    }
+  }
+
+  _twilio(lat, long, phoneNum) {
+    twilioFlutter = TwilioFlutter(
+        accountSid: 'ACa49887faaff26a5df68fd7d066fa74af',
+        authToken: '33135e04f640cdf94505b7cf1226701b',
+        twilioNumber: '+12407165036');
+
+    twilioFlutter.sendSMS(
+        toNumber: phoneNum,
+        messageBody:
+            '\n Location Changed \n https://www.google.com/maps/search/?api=1&query=$lat,$long');
+  }
+
+  _getLoc() async {
+    await _location.getCurrentLocation();
+    print('Lat:' + _location.latitude.toString());
+
+    _location.positionStream.onData((data) async {
+      _location.count++;
+
+      if (data != null && _location.count >= 2) {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        String num = prefs.getString('phone');
+        if (num != null) {
+          _twilio(data.latitude.toString(), data.longitude.toString(), num);
+          _scaffoldKey.currentState
+              .showSnackBar(new SnackBar(content: Text('Sending Message...')));
+          print('Changed Loc: ' +
+              data.latitude.toString() +
+              ', ' +
+              data.longitude.toString());
+        }
+      }
+    });
   }
 
   /// 1 Obtain a list of the available cameras on the device.
@@ -76,6 +186,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: Colors.white,
       appBar: AppBar(
         leading: Container(),
