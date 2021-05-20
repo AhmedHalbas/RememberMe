@@ -107,7 +107,7 @@ class _MyHomePageState extends State<MyHomePage> {
   _twilio(lat, long, phoneNum) {
     twilioFlutter = TwilioFlutter(
         accountSid: 'ACa49887faaff26a5df68fd7d066fa74af',
-        authToken: '33135e04f640cdf94505b7cf1226701b',
+        authToken: '940db8528b05c975af0220257d08ecf2',
         twilioNumber: '+12407165036');
 
     twilioFlutter.sendSMS(
