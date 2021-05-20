@@ -1,5 +1,6 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:remember_me/components/app_text_field.dart';
 import 'package:remember_me/database/database.dart';
@@ -100,15 +101,15 @@ class _MyHomePageState extends State<MyHomePage> {
       prefs.setBool('first_time', false);
       //show alert
 
-          showAlertDialog(context);
+      showAlertDialog(context);
     }
   }
 
   _twilio(lat, long, phoneNum) {
     twilioFlutter = TwilioFlutter(
-        accountSid: 'ACa49887faaff26a5df68fd7d066fa74af',
-        authToken: '940db8528b05c975af0220257d08ecf2',
-        twilioNumber: '+12407165036');
+        accountSid: env['accountSid'],
+        authToken: env['authToken'],
+        twilioNumber: env['twilioNumber']);
 
     twilioFlutter.sendSMS(
         toNumber: phoneNum,
