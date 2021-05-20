@@ -100,7 +100,7 @@ class _MyHomePageState extends State<MyHomePage> {
       prefs.setBool('first_time', false);
       //show alert
 
-      showAlertDialog(context);
+          showAlertDialog(context);
     }
   }
 
@@ -113,7 +113,7 @@ class _MyHomePageState extends State<MyHomePage> {
     twilioFlutter.sendSMS(
         toNumber: phoneNum,
         messageBody:
-            '\n Location Changed \n https://www.google.com/maps/search/?api=1&query=$lat,$long');
+            'Location Changed \n https://www.google.com/maps/search/?api=1&query=$lat,$long');
   }
 
   _getLoc() async {
