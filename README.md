@@ -8,11 +8,11 @@
 <!-- PROJECT LOGO -->
 <br />
 <p align="center">
-  <a href="https://drive.google.com/file/d/1kZ-2SnL_QNs9jsbKnc4_aMxT0_ovD7hz/view?usp=sharing">
+  <a href="https://drive.google.com/file/d/1cnxT-8tQkupNqeuCmu6N27MGxwSGTL3x/view?usp=sharing">
     <img src="assets/logo.png" alt="Logo" width="400" height="200">
   </a>
   
-  <a href="https://drive.google.com/file/d/1kZ-2SnL_QNs9jsbKnc4_aMxT0_ovD7hz/view?usp=sharing">
+  <a href="https://drive.google.com/file/d/1cnxT-8tQkupNqeuCmu6N27MGxwSGTL3x/view?usp=sharing">
    <h3 align="center">Remember Me</h3>
   </a>
   </p>
@@ -38,16 +38,17 @@ It has 3 main pages:
 3- Users List
 <br/>
 
-Also, sending an SMS to a pre-selected number in case of Location changed
+Also, sending an SMS to a pre-selected number in case of Location changed and pushing scheduled notification for user memory refreshing
 <br/>
 
-### Technologies Used
+### Technologies and Packages Used
 
 * Flutter
 * TensorFlow Lite
 * ML Vision
 * Geolocator
 * Twilio API
+* Flutter Local Notification
 
 
 for anyone who want to use it please cite us and the original project creator.
