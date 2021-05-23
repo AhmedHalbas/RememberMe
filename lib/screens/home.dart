@@ -1,6 +1,7 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:remember_me/components/app_text_field.dart';
 import 'package:remember_me/database/database.dart';
@@ -23,6 +24,8 @@ class _MyHomePageState extends State<MyHomePage> {
   final GlobalKey<FormState> _globalKey = GlobalKey<FormState>();
   final TextEditingController phoneController = TextEditingController();
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
 
   // Services injection
   FaceNetService _faceNetService = FaceNetService();
@@ -39,6 +42,52 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
     _startUp();
     _startTime();
+    _showNotification();
+  }
+
+  Future selectNotification(String payload) async {
+    if (payload != null) {
+      debugPrint('notification payload: $payload');
+    }
+    await Navigator.push(
+      context,
+      MaterialPageRoute<void>(builder: (context) => UsersListView()),
+    );
+  }
+
+  _initNotification() async {
+    // initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
+    const AndroidInitializationSettings initializationSettingsAndroid =
+        AndroidInitializationSettings('logo');
+
+    final InitializationSettings initializationSettings =
+        InitializationSettings(android: initializationSettingsAndroid);
+    await flutterLocalNotificationsPlugin.initialize(initializationSettings,
+        onSelectNotification: selectNotification);
+  }
+
+  _showNotification() async {
+    _initNotification();
+
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+        AndroidNotificationDetails(
+      'repeating channel id',
+      'repeating channel name',
+      'repeating description',
+      importance: Importance.max,
+      priority: Priority.high,
+      styleInformation: BigTextStyleInformation(
+          'click here if you\'re lost, looking for someone, want to remember someone or to tell someone where you are.'),
+    );
+    const NotificationDetails platformChannelSpecifics =
+        NotificationDetails(android: androidPlatformChannelSpecifics);
+    await flutterLocalNotificationsPlugin.periodicallyShow(
+        0,
+        'We\'re Here For You',
+        'click here if you\'re lost, looking for someone, want to remember someone or to tell someone where you are.',
+        RepeatInterval.everyMinute,
+        platformChannelSpecifics,
+        androidAllowWhileIdle: true);
   }
 
   showAlertDialog(BuildContext context) {
