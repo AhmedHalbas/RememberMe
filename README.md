@@ -8,11 +8,11 @@
 <!-- PROJECT LOGO -->
 <br />
 <p align="center">
-  <a href="https://dl.orangedox.com/RbE7f5UGGF9ITrSCuj">
+  <a href="https://drive.google.com/file/d/1kZ-2SnL_QNs9jsbKnc4_aMxT0_ovD7hz/view?usp=sharing">
     <img src="assets/logo.png" alt="Logo" width="400" height="200">
   </a>
   
-  <a href="https://dl.orangedox.com/RbE7f5UGGF9ITrSCuj">
+  <a href="https://drive.google.com/file/d/1kZ-2SnL_QNs9jsbKnc4_aMxT0_ovD7hz/view?usp=sharing">
    <h3 align="center">Remember Me</h3>
   </a>
   </p>
@@ -31,15 +31,23 @@ Our App is crafted with Flutter based on the repo mentioned above with Tensorflo
 
 It has 3 main pages:
 
-1- Add New User 
+1- Add New User
+<br/>
 2- Check User 
+<br/>
 3- Users List
+<br/>
+
+Also, sending an SMS to a pre-selected number in case of Location changed
+<br/>
 
 ### Technologies Used
 
 * Flutter
 * TensorFlow Lite
 * ML Vision
+* Geolocator
+* Twilio API
 
 
 for anyone who want to use it please cite us and the original project creator.
